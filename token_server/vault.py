@@ -55,3 +55,4 @@ def record_purchase(token: str, amount: str):
     with open(purchase_log, "w") as f:
         json.dump(purchases, f, indent=2)
 
+

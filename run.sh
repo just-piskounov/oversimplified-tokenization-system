@@ -5,7 +5,7 @@ echo "🔄 Starting PCI-DSS Tokenization System..."
 
 # Activate virtual environment
 echo "🧪 Activating Python virtual environment..."
-source venv/bin/activate || source venv/Scripts/activate
+source .venv/bin/activate || source .venv/Scripts/activate
 
 # Load env
 export $(grep -v '^#' .env | xargs)
