@@ -17,15 +17,17 @@ def encrypt_pan(pan: str) -> str:
     return b64encode(nonce + ciphertext).decode()
 
 def decrypt_pan(blob: str) -> str:
+    """Fixed decryption function with proper nonce handling"""
     raw = b64decode(blob)
-    nonce, ciphertext = raw[:16], raw[:16]
+    nonce = raw[:16]  # Extract nonce (first 16 bytes)
+    ciphertext = raw[16:]  # Extract ciphertext (remaining bytes)
     cipher = AES.new(KEY, AES.MODE_EAX, nonce)
     return cipher.decrypt(ciphertext).decode()
 
 def store_mapping(token: str, encrypted_pan: str):
     os.makedirs("data", exist_ok=True)
     if os.path.exists(VAULT_FILE):
-        with open(VAULT_FILE) as f:
+        with open(VAULT_FILE, "r") as f:
             db = json.load(f)
     else:
         db = {}
@@ -37,22 +39,26 @@ def store_mapping(token: str, encrypted_pan: str):
 def get_encrypted_pan(token: str) -> str:
     if not os.path.exists(VAULT_FILE):
         return None
-    with open(VAULT_FILE) as f:
+    with open(VAULT_FILE, "r") as f:
         db = json.load(f)
-
     return db.get(token)
 
 def record_purchase(token: str, amount: str):
+    """Fixed purchase recording with proper file handling"""
     purchase_log = "data/purchases.json"
     os.makedirs("data", exist_ok=True)
-    if os.path.exists(purchase_log):
-        with open(purchase_log) as f:
-            purchases = json.load(f)
+    
+    # Handle empty or non-existent file
+    if os.path.exists(purchase_log) and os.path.getsize(purchase_log) > 0:
+        try:
+            with open(purchase_log, "r") as f:
+                purchases = json.load(f)
+        except json.JSONDecodeError:
+            # File exists but is empty/corrupted, start fresh
+            purchases = []
     else:
         purchases = []
 
     purchases.append({"token": token, "amount": amount})
     with open(purchase_log, "w") as f:
         json.dump(purchases, f, indent=2)
-
-
